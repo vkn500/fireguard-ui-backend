@@ -1,0 +1,8 @@
+alert_email/node_modules
+alert_email/package-lock.json
+alert_email/package.json
+alerts
+data
+venv
+fire_smoke_hazard_convlstm_gpu.h5
+

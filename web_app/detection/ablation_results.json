@@ -1,0 +1,126 @@
+{
+  "with_smoothing": [
+    {
+      "total_frames": 3,
+      "detection_frames": 0,
+      "detection_percentage": 0.0,
+      "true_positive": 0,
+      "false_positive": 0,
+      "flicker_count": 0,
+      "ground_truth": "fire",
+      "mode": "WITH_SMOOTHING"
+    },
+    {
+      "total_frames": 43,
+      "detection_frames": 0,
+      "detection_percentage": 0.0,
+      "true_positive": 0,
+      "false_positive": 0,
+      "flicker_count": 0,
+      "ground_truth": "fire",
+      "mode": "WITH_SMOOTHING"
+    },
+    {
+      "total_frames": 2,
+      "detection_frames": 0,
+      "detection_percentage": 0.0,
+      "true_positive": 0,
+      "false_positive": 0,
+      "flicker_count": 0,
+      "ground_truth": "smoke",
+      "mode": "WITH_SMOOTHING"
+    },
+    {
+      "total_frames": 310,
+      "detection_frames": 0,
+      "detection_percentage": 0.0,
+      "true_positive": 0,
+      "false_positive": 0,
+      "flicker_count": 0,
+      "ground_truth": "normal",
+      "mode": "WITH_SMOOTHING"
+    },
+    {
+      "total_frames": 268,
+      "detection_frames": 0,
+      "detection_percentage": 0.0,
+      "true_positive": 0,
+      "false_positive": 0,
+      "flicker_count": 0,
+      "ground_truth": "normal",
+      "mode": "WITH_SMOOTHING"
+    },
+    {
+      "total_frames": 2,
+      "detection_frames": 0,
+      "detection_percentage": 0.0,
+      "true_positive": 0,
+      "false_positive": 0,
+      "flicker_count": 0,
+      "ground_truth": "normal",
+      "mode": "WITH_SMOOTHING"
+    }
+  ],
+  "without_smoothing": [
+    {
+      "total_frames": 3,
+      "detection_frames": 0,
+      "detection_percentage": 0.0,
+      "true_positive": 0,
+      "false_positive": 0,
+      "flicker_count": 0,
+      "ground_truth": "fire",
+      "mode": "WITHOUT_SMOOTHING"
+    },
+    {
+      "total_frames": 48,
+      "detection_frames": 3,
+      "detection_percentage": 6.25,
+      "true_positive": 1,
+      "false_positive": 0,
+      "flicker_count": 6,
+      "ground_truth": "fire",
+      "mode": "WITHOUT_SMOOTHING"
+    },
+    {
+      "total_frames": 3,
+      "detection_frames": 0,
+      "detection_percentage": 0.0,
+      "true_positive": 0,
+      "false_positive": 0,
+      "flicker_count": 0,
+      "ground_truth": "smoke",
+      "mode": "WITHOUT_SMOOTHING"
+    },
+    {
+      "total_frames": 310,
+      "detection_frames": 0,
+      "detection_percentage": 0.0,
+      "true_positive": 0,
+      "false_positive": 0,
+      "flicker_count": 0,
+      "ground_truth": "normal",
+      "mode": "WITHOUT_SMOOTHING"
+    },
+    {
+      "total_frames": 268,
+      "detection_frames": 0,
+      "detection_percentage": 0.0,
+      "true_positive": 0,
+      "false_positive": 0,
+      "flicker_count": 0,
+      "ground_truth": "normal",
+      "mode": "WITHOUT_SMOOTHING"
+    },
+    {
+      "total_frames": 2,
+      "detection_frames": 0,
+      "detection_percentage": 0.0,
+      "true_positive": 0,
+      "false_positive": 0,
+      "flicker_count": 0,
+      "ground_truth": "normal",
+      "mode": "WITHOUT_SMOOTHING"
+    }
+  ]
+}

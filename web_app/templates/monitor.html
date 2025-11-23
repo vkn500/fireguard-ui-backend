@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Live Monitoring</title>
+</head>
+<body>
+
+{% extends "base.html" %}
+{% block content %}
+
+<h2 class="text-warning">📡 Monitoring: {{ cam_name }}</h2>
+
+<div class="card p-3 mt-3">
+    <img src="/video_feed" class="img-fluid rounded border border-secondary">
+</div>
+
+<div class="mt-3">
+    <button class="btn btn-danger" onclick="stopStream()">⛔ Stop Monitoring</button>
+</div>
+
+<script>
+function stopStream() {
+    fetch("/stop_stream").then(() => window.location.href = "/");
+}
+</script>
+
+{% endblock %}
+
+
+</body>
+</html>

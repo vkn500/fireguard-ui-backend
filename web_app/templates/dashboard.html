@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>📊 Dashboard</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/static/dashboard.js"></script>
+
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        .chart-container { width: 45%; display: inline-block; margin: 20px; }
+        h1 { color: #d9534f; }
+    </style>
+</head>
+
+<body>
+
+{% extends "base.html" %}
+{% block content %}
+
+<h2 class="text-warning">📊 Analytics Dashboard</h2>
+
+<div class="chart-container">
+    <canvas id="labelChart"></canvas>
+</div>
+
+<div class="chart-container">
+    <canvas id="severityChart"></canvas>
+</div>
+
+<div class="chart-container" style="width: 90%;">
+    <canvas id="dailyChart"></canvas>
+</div>
+
+<script id="chart-data" type="application/json">
+    {{ chart_data | safe }}
+</script>
+
+<script>
+    const chartData = JSON.parse(document.getElementById("chart-data").textContent);
+
+    loadCharts(
+        { labels: chartData.labels, values: chartData.label_values },
+        chartData.severity_values,
+        { labels: chartData.daily_labels, values: chartData.daily_values }
+    );
+</script>
+
+{% endblock %}
+
+
+</body>
+</html>
