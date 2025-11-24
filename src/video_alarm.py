@@ -10,7 +10,7 @@ import threading
 # CONFIG
 # ------------------------------
 MODEL_PATH = "../models/yolo11-d-fire-dataset.pt"
-VIDEO_PATH = "../data/firesense/fire/posVideo10.869.avi"   # <-- update to your video name or full path
+VIDEO_PATH = "../data/firesense/smoke/testpos10.826.avi"   # <-- update to your video name or full path
 SMOOTH_WINDOW = 7
 CONF_THRESHOLD = 0.4
 
