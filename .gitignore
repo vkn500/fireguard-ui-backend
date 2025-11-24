@@ -5,4 +5,5 @@ alerts
 data
 venv
 fire_smoke_hazard_convlstm_gpu.h5
-
+web_app/static/snapshots
+web_app/uploaded_videos
