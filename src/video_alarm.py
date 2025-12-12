@@ -9,8 +9,8 @@ import threading
 # ------------------------------
 # CONFIG
 # ------------------------------
-MODEL_PATH = "../models/yolo11-d-fire-dataset.pt"
-VIDEO_PATH = "../data/firesense/smoke/testpos10.826.avi"   # <-- update to your video name or full path
+MODEL_PATH = "../models/best_nano_111.pt"
+VIDEO_PATH = "../data/firesense/fire/posVideo10.869.avi"   # <-- update to your video name or full path
 SMOOTH_WINDOW = 7
 CONF_THRESHOLD = 0.4
 
@@ -24,7 +24,7 @@ ALARM_AUDIO = "../alarm-301729.mp3"  # place alarm.mp3 in project root
 model = YOLO(MODEL_PATH)
 print("🔥 Model loaded — Starting Video ...")
 
-CLASS_MAP = {0: "smoke", 1: "fire"}
+CLASS_MAP = {0: "fire", 1: "smoke"}  #{0: "fire", 1: "smoke"}
 label_queue = deque(maxlen=SMOOTH_WINDOW)
 
 # Video input instead of webcam
