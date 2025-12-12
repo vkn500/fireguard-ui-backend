@@ -14,7 +14,7 @@ import winsound
 # =========================================
 # CONFIGURATION
 # =========================================
-MODEL_PATH = "detection/yolo11-d-fire-dataset.pt"
+MODEL_PATH = "detection/yolo11-d-fire-dataset.pt"  #detection/best_nano_111.pt
 ALARM_SOUND = "../alarm-301729 (1).wav.crdownload"
 SNAPSHOT_DIR = "static/snapshots"
 
@@ -41,7 +41,7 @@ manual_alarm_override = False
 
 # Load YOLO model
 model = YOLO(MODEL_PATH)
-CLASS_MAP = {0: "smoke", 1: "fire"}
+CLASS_MAP = {0: "smoke", 1: "fire"}  #{0: "fire", 1: "smoke"}
 label_queue = deque(maxlen=7)
 
 
