@@ -8,13 +8,13 @@ import time
 import sqlite3
 import os
 import winsound
-
+from detection.anti_spoofing import TemporalConsistencyFilter
 
 
 # =========================================
 # CONFIGURATION
 # =========================================
-MODEL_PATH = "detection/yolo11-d-fire-dataset.pt"  #detection/best_nano_111.pt
+MODEL_PATH = "detection/yolo11-d-fire-dataset.pt"
 ALARM_SOUND = "../alarm-301729 (1).wav.crdownload"
 SNAPSHOT_DIR = "static/snapshots"
 
@@ -22,7 +22,17 @@ os.makedirs(SNAPSHOT_DIR, exist_ok=True)
 
 EMAIL_COOLDOWN = 600   # 10 minutes
 
-# GLOBALS
+# =========================================
+# STATE TRACKING (for clean console output)
+# =========================================
+last_alarm_state = None  # 'running' or 'stopped'
+last_spoofing_state = None  # True (spoofing detected) or False (real fire)
+last_incident_state = None  # True (incident active) or False (safe)
+
+# ANTI-SPOOFING
+ANTI_SPOOFING_ENABLED = True
+anti_spoofing_detector = TemporalConsistencyFilter()
+
 alarm_process = None
 alarm_playing = False
 email_sent = False
@@ -41,7 +51,7 @@ manual_alarm_override = False
 
 # Load YOLO model
 model = YOLO(MODEL_PATH)
-CLASS_MAP = {0: "smoke", 1: "fire"}  #{0: "fire", 1: "smoke"}
+CLASS_MAP = {0: "smoke", 1: "fire"}
 label_queue = deque(maxlen=7)
 
 
@@ -67,29 +77,27 @@ def play_alarm():
     while alarm_playing:
         playsound(ALARM_SOUND)
 
+
 def start_alarm():
     global alarm_playing, manual_alarm_override
     if alarm_playing or manual_alarm_override:
         return
 
     alarm_playing = True
-    print("🔊 Alarm started")
-
     winsound.PlaySound(ALARM_SOUND, winsound.SND_ASYNC)
+
 
 def stop_alarm():
     global alarm_playing
-    print("🔕 Alarm stopped")
-
     winsound.PlaySound(None, winsound.SND_PURGE)
     alarm_playing = False
-    
+
+
 def stop_alarm_manual():
     global manual_alarm_override
     manual_alarm_override = True
     stop_alarm()
     print("🛑 Manual alarm override activated")
-
 
 
 # =========================================
@@ -135,6 +143,9 @@ def process_frame(frame):
     global email_sent, last_email_time
     global in_incident, incident_label, incident_snap_count, incident_last_seen
     global manual_alarm_override
+    global alarm_playing
+    global last_alarm_state, last_spoofing_state, last_incident_state
+    global anti_spoofing_detector
 
     h, w, _ = frame.shape
     total_area = w * h
@@ -146,9 +157,9 @@ def process_frame(frame):
     smoke_present = False
     detected_label = "no_fire"
 
-    # -------------------------------------
+    # =====================================
     # YOLO DETECTION
-    # -------------------------------------
+    # =====================================
     if boxes is not None and len(boxes) > 0:
         for b in boxes:
             x1, y1, x2, y2 = map(int, b.xyxy[0].tolist())
@@ -172,9 +183,9 @@ def process_frame(frame):
                 smoke_present = True
                 detected_label = "smoke"
 
-    # -------------------------------------
+    # =====================================
     # TEMPORAL SMOOTHING
-    # -------------------------------------
+    # =====================================
     if detected_label == "no_fire":
         label_queue.clear()
         label_queue.append("no_fire")
@@ -189,10 +200,43 @@ def process_frame(frame):
     now = time.time()
     timestamp_str = time.strftime("%Y-%m-%d %H:%M:%S")
 
+    # =====================================
+    # 🆕 ANTI-SPOOFING CHECK
+    # =====================================
+    is_real_fire = True  # default
+
+    if ANTI_SPOOFING_ENABLED and final_label != "no_fire":
+        conf_value = 0.85  # default confidence
+        if results[0].boxes is not None and len(results[0].boxes) > 0:
+            conf_value = float(results[0].boxes[0].conf[0])
+
+        anti_spoofing_detector.add_detection(final_label, conf_value)
+        is_real_fire, spoofing_reason, _ = anti_spoofing_detector.is_real_fire()
+
+        # ONLY PRINT IF STATE CHANGED
+        if not is_real_fire:
+            if last_spoofing_state != True:  # State changed to SPOOFING
+                print(f"❌ SPOOFING DETECTED: {spoofing_reason}")
+                last_spoofing_state = True
+            severity = 0
+            final_label = "no_fire"
+        else:
+            if last_spoofing_state != False:  # State changed to REAL FIRE
+                print(f"✅ Real fire verified - {spoofing_reason}")
+                last_spoofing_state = False
+    else:
+        last_spoofing_state = None
+
     # ======================================================
-    # 🔥 INCIDENT CONTROL
+    # 🔥 INCIDENT CONTROL (with state tracking)
     # ======================================================
     if severity >= 2:
+        # Only print once when alarm STARTS (not every frame)
+        if not alarm_playing:
+            if last_alarm_state != 'running':
+                print("🔊 ALARM STARTED")
+                last_alarm_state = 'running'
+
         if not manual_alarm_override:
             start_alarm()
 
@@ -201,21 +245,20 @@ def process_frame(frame):
             in_incident = True
             incident_label = final_label
             incident_snap_count = 0
-            manual_alarm_override = False   # ← RESET HERE
-            print("🔥 New Incident Started:", final_label)
+            manual_alarm_override = False
+            print(f"🔥 NEW INCIDENT: {final_label}")
+            last_incident_state = True
 
         incident_last_seen = now
 
-        # Save only 2–5 snapshots per incident
+        # Save snapshots
         if incident_snap_count < MAX_SNAPS:
             snapshot_name = f"{int(now)}_{final_label}_sev{severity}.jpg"
             snapshot_path = os.path.join(SNAPSHOT_DIR, snapshot_name)
             cv2.imwrite(snapshot_path, frame)
-
             save_alert_to_db(timestamp_str, final_label, severity, snapshot_path)
-
             incident_snap_count += 1
-            print(f"📸 Snapshot saved ({incident_snap_count}/{MAX_SNAPS})")
+            print(f"📸 Snapshot {incident_snap_count}/{MAX_SNAPS}")
 
         # Email cooldown
         if (not email_sent) or (now - last_email_time > EMAIL_COOLDOWN):
@@ -224,21 +267,29 @@ def process_frame(frame):
             last_email_time = now
 
     else:
+        # Only print once when alarm STOPS (not every frame)
+        if alarm_playing or last_alarm_state == 'running':
+            if last_alarm_state != 'stopped':
+                print("🔕 ALARM STOPPED")
+                last_alarm_state = 'stopped'
+
         if not manual_alarm_override:
             stop_alarm()
             email_sent = False
 
         # End incident after 5 sec inactivity
         if in_incident and (now - incident_last_seen > INCIDENT_TIMEOUT):
-            print("✅ Incident ended.")
+            if last_incident_state != False:
+                print("✅ INCIDENT ENDED")
+                last_incident_state = False
             in_incident = False
             incident_label = None
             incident_snap_count = 0
-            manual_alarm_override = False  # Reset override when safe
+            manual_alarm_override = False
 
-    # -------------------------------------
+    # =====================================
     # DRAW SEVERITY TEXT
-    # -------------------------------------
+    # =====================================
     severity_colors = [
         (0, 255, 0),
         (0, 255, 255),
